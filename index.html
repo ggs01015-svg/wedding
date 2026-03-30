@@ -32,7 +32,6 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-snap-type: y proximity;
 }
 
 body {
@@ -49,8 +48,6 @@ section {
   max-width: 480px;
   margin: 0 auto;
   border-top: 0.5px solid var(--gold-light);
-  scroll-snap-align: start;
-  min-height: 100dvh;
 }
 
 #intro {
@@ -2047,29 +2044,69 @@ const revealObserver = new IntersectionObserver((entries) => {
 
 reveals.forEach(el => revealObserver.observe(el));
 
-// ===== DOT NAVIGATION =====
+// ===== DOT NAVIGATION + JS SECTION SCROLL =====
 const dotBtns = document.querySelectorAll('.dot-nav-btn');
-const navSections = document.querySelectorAll('section[id]');
+const navSections = Array.from(document.querySelectorAll('section[id]'));
+let currentIdx = 0;
+let isScrolling = false;
+
+function goToSection(idx) {
+  if (idx < 0 || idx >= navSections.length) return;
+  isScrolling = true;
+  currentIdx = idx;
+  navSections[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  dotBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.target === navSections[idx].id);
+  });
+  setTimeout(() => { isScrolling = false; }, 800);
+}
 
 dotBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    const target = document.getElementById(btn.dataset.target);
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const idx = navSections.findIndex(s => s.id === btn.dataset.target);
+    if (idx !== -1) goToSection(idx);
   });
 });
 
+// 현재 섹션 감지 (IntersectionObserver로 dot 동기화)
 const sectionObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      const id = entry.target.id;
-      dotBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.target === id);
-      });
+      const idx = navSections.findIndex(s => s.id === entry.target.id);
+      if (idx !== -1) {
+        currentIdx = idx;
+        dotBtns.forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.target === entry.target.id);
+        });
+      }
     }
   });
-}, { threshold: 0.4 });
-
+}, { threshold: 0.5 });
 navSections.forEach(s => sectionObserver.observe(s));
+
+// 마우스 휠: 섹션 단위 이동
+let wheelAccum = 0;
+window.addEventListener('wheel', (e) => {
+  if (isScrolling) return;
+  wheelAccum += e.deltaY;
+  if (Math.abs(wheelAccum) > 60) {
+    goToSection(wheelAccum > 0 ? currentIdx + 1 : currentIdx - 1);
+    wheelAccum = 0;
+  }
+}, { passive: true });
+
+// 터치: 섹션 단위 이동
+let touchStartY = 0;
+window.addEventListener('touchstart', (e) => {
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+window.addEventListener('touchend', (e) => {
+  if (isScrolling) return;
+  const diff = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(diff) > 40) {
+    goToSection(diff > 0 ? currentIdx + 1 : currentIdx - 1);
+  }
+}, { passive: true });
 </script>
 </body>
 </html>
