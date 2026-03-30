@@ -1703,7 +1703,18 @@ document.getElementById('gImg4').src = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABA
 
 // ===== RSVP / LUCKY DRAW =====
 let selectedSide = '신랑';
-let luckyCounter = Math.floor(Math.random() * 100) + 100; // start from random offset
+
+// Check if already participated
+(function checkExistingEntry() {
+  const existing = localStorage.getItem('wedding_lucky');
+  if (existing) {
+    const data = JSON.parse(existing);
+    document.getElementById('rsvpNumber').textContent = data.number;
+    document.getElementById('rsvpNameConfirm').textContent = data.name + '님';
+    document.getElementById('rsvpResult').style.display = 'block';
+    document.querySelector('.rsvp-form').style.display = 'none';
+  }
+})();
 
 function selectSide(btn) {
   document.querySelectorAll('.rsvp-side-btn').forEach(b => b.classList.remove('active'));
@@ -1712,6 +1723,12 @@ function selectSide(btn) {
 }
 
 async function submitRsvp() {
+  if (localStorage.getItem('wedding_lucky')) {
+    const data = JSON.parse(localStorage.getItem('wedding_lucky'));
+    showToast('이미 응모하셨습니다. 번호: ' + data.number);
+    return;
+  }
+
   const name = document.getElementById('rsvpName').value.trim();
 
   if (!name) {
@@ -1719,7 +1736,6 @@ async function submitRsvp() {
     return;
   }
 
-  // Generate lucky number based on timestamp for uniqueness
   const now = Date.now();
   const luckyNum = String(now).slice(-4);
   const formattedNum = '#' + luckyNum.padStart(4, '0');
@@ -1741,7 +1757,8 @@ async function submitRsvp() {
     } catch (e) {}
   }
 
-  // Show lucky number
+  localStorage.setItem('wedding_lucky', JSON.stringify({ name: name, number: formattedNum }));
+
   document.getElementById('rsvpNumber').textContent = formattedNum;
   document.getElementById('rsvpNameConfirm').textContent = name + '님';
   document.getElementById('rsvpResult').style.display = 'block';
