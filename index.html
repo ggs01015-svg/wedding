@@ -30,7 +30,10 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+}
 
 body {
   font-family: 'Noto Serif KR', serif;
@@ -46,6 +49,8 @@ section {
   max-width: 480px;
   margin: 0 auto;
   border-top: 0.5px solid var(--gold-light);
+  scroll-snap-align: start;
+  min-height: 100dvh;
 }
 
 #intro {
@@ -1222,6 +1227,68 @@ footer {
   50.1% { transform: scaleY(1); transform-origin: bottom; }
   100% { transform: scaleY(0); transform-origin: bottom; }
 }
+/* ========== DOT NAVIGATION ========== */
+.dot-nav {
+  position: fixed;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  z-index: 200;
+}
+
+.dot-nav-btn {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.45;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dot-nav-btn.active {
+  background: var(--gold);
+  opacity: 1;
+  transform: scale(1.7);
+}
+
+.dot-nav-btn:hover {
+  opacity: 0.8;
+}
+
+/* 툴팁 */
+.dot-nav-btn::before {
+  content: attr(data-label);
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Noto Serif KR', serif;
+  font-size: 9px;
+  font-weight: 300;
+  letter-spacing: 1px;
+  color: var(--charcoal);
+  background: rgba(250,249,246,0.92);
+  padding: 3px 7px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  border: 0.5px solid var(--gold-light);
+}
+
+.dot-nav-btn:hover::before,
+.dot-nav-btn.active::before {
+  opacity: 1;
+}
+
 </style>
 </head>
 <body>
@@ -1557,6 +1624,21 @@ footer {
   <div class="footer-names">광 석 <span class="footer-amp">&</span> 유 리</div>
   <div class="footer-date">2026. 10. 24</div>
 </footer>
+
+<!-- DOT NAVIGATION -->
+<nav class="dot-nav" id="dotNav">
+  <button class="dot-nav-btn active" data-target="intro"       data-label="시작"></button>
+  <button class="dot-nav-btn"        data-target="invitation"  data-label="초대글"></button>
+  <button class="dot-nav-btn"        data-target="gallery"     data-label="갤러리"></button>
+  <button class="dot-nav-btn"        data-target="guestbook"   data-label="방명록"></button>
+  <button class="dot-nav-btn"        data-target="share"       data-label="공유"></button>
+  <button class="dot-nav-btn"        data-target="dateplace"   data-label="날짜·장소"></button>
+  <button class="dot-nav-btn"        data-target="map-section" data-label="오시는 길"></button>
+  <button class="dot-nav-btn"        data-target="contact"     data-label="연락처"></button>
+  <button class="dot-nav-btn"        data-target="rsvp"        data-label="럭키드로우"></button>
+  <button class="dot-nav-btn"        data-target="account"     data-label="축의금"></button>
+  <button class="dot-nav-btn"        data-target="flower"      data-label="화환"></button>
+</nav>
 
 <script>
 // ===== GALLERY =====
@@ -1955,7 +2037,7 @@ function shareLinkCopy() {
 
 // ===== SCROLL REVEAL =====
 const reveals = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver((entries) => {
+const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       entry.target.classList.add('visible');
@@ -1963,7 +2045,31 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.15 });
 
-reveals.forEach(el => observer.observe(el));
+reveals.forEach(el => revealObserver.observe(el));
+
+// ===== DOT NAVIGATION =====
+const dotBtns = document.querySelectorAll('.dot-nav-btn');
+const navSections = document.querySelectorAll('section[id]');
+
+dotBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      dotBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.target === id);
+      });
+    }
+  });
+}, { threshold: 0.4 });
+
+navSections.forEach(s => sectionObserver.observe(s));
 </script>
 </body>
 </html>
