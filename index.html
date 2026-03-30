@@ -45,6 +45,11 @@ section {
   padding: 60px 24px;
   max-width: 480px;
   margin: 0 auto;
+  border-top: 0.5px solid var(--gold-light);
+}
+
+#intro {
+  border-top: none;
 }
 
 .section-label {
@@ -353,29 +358,36 @@ section {
 .gallery-track {
   display: flex;
   transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  align-items: center;
 }
 
 .gallery-slide {
-  width: 200px;
+  width: 100%;
   flex-shrink: 0;
-  padding: 0 6px;
 }
 
 .gallery-slide img {
   width: 100%;
-  height: 260px;
+  height: 72vw;
+  max-height: 360px;
   object-fit: cover;
   display: block;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
   cursor: pointer;
+}
+
+.gallery-counter {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--light-taupe);
+  text-align: center;
+  margin-top: 14px;
 }
 
 .gallery-dots {
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-top: 24px;
+  margin-top: 14px;
 }
 
 .gallery-dot {
@@ -736,7 +748,7 @@ section {
 
 /* ========== GUESTBOOK ========== */
 #guestbook {
-  background: var(--cream);
+  background: var(--warm-white);
   text-align: center;
 }
 
@@ -847,7 +859,7 @@ footer {
 
 /* ========== CONTACT CALL ========== */
 #contact {
-  background: var(--cream);
+  background: var(--warm-white);
   text-align: center;
 }
 
@@ -941,7 +953,7 @@ footer {
 
 /* ========== RSVP ========== */
 #rsvp {
-  background: var(--warm-white);
+  background: var(--cream);
   text-align: center;
 }
 
@@ -1086,7 +1098,7 @@ footer {
 
 /* ========== SHARE ========== */
 #share {
-  background: var(--warm-white);
+  background: var(--cream);
   text-align: center;
   padding: 48px 24px;
 }
@@ -1280,6 +1292,7 @@ footer {
         <div class="gallery-slide"><img id="gImg4" alt="웨딩 사진 4"></div>
       </div>
     </div>
+    <div class="gallery-counter" id="galleryCounter">1 / 4</div>
     <div class="gallery-dots" id="galleryDots">
       <button class="gallery-dot active" data-idx="0"></button>
       <button class="gallery-dot" data-idx="1"></button>
@@ -1551,18 +1564,15 @@ let currentSlide = 0;
 const totalSlides = 4;
 const track = document.getElementById('galleryTrack');
 const dots = document.querySelectorAll('.gallery-dot');
-const slideWidth = 212; // 200px + 12px padding
 
 function goToSlide(idx) {
-  currentSlide = idx;
+  currentSlide = Math.max(0, Math.min(idx, totalSlides - 1));
   const containerWidth = document.querySelector('.gallery-container').offsetWidth;
-  const centerOffset = (containerWidth - 200) / 2;
-  const offset = -(idx * slideWidth) + centerOffset;
-  track.style.transform = `translateX(${offset}px)`;
-  dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  track.style.transform = `translateX(${-(currentSlide * containerWidth)}px)`;
+  dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+  document.getElementById('galleryCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
 }
 
-// Initialize position
 setTimeout(() => goToSlide(0), 100);
 window.addEventListener('resize', () => goToSlide(currentSlide));
 
