@@ -833,6 +833,21 @@ section {
 .gb-entries {
   max-width: 340px;
   margin: 0 auto;
+  max-height: 35vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gb-entries::-webkit-scrollbar {
+  width: 3px;
+}
+.gb-entries::-webkit-scrollbar-track {
+  background: transparent;
+}
+.gb-entries::-webkit-scrollbar-thumb {
+  background: var(--gold-light);
+  border-radius: 2px;
 }
 
 .gb-entry {
@@ -2092,6 +2107,8 @@ navSections.forEach(s => sectionObserver.observe(s));
 let wheelAccum = 0;
 window.addEventListener('wheel', (e) => {
   if (isScrolling) return;
+  // 방명록 내부 스크롤 중이면 섹션 이동 무시
+  if (e.target.closest('.gb-entries')) return;
   wheelAccum += e.deltaY;
   if (Math.abs(wheelAccum) > 60) {
     goToSection(wheelAccum > 0 ? currentIdx + 1 : currentIdx - 1);
@@ -2106,6 +2123,8 @@ window.addEventListener('touchstart', (e) => {
 }, { passive: true });
 window.addEventListener('touchend', (e) => {
   if (isScrolling) return;
+  // 방명록 내부 터치면 섹션 이동 무시
+  if (e.target.closest('.gb-entries')) return;
   const diff = touchStartY - e.changedTouches[0].clientY;
   if (Math.abs(diff) > 40) {
     goToSection(diff > 0 ? currentIdx + 1 : currentIdx - 1);
